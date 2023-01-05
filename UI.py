@@ -1,5 +1,6 @@
 import copy
 import matplotlib.pyplot as plt
+import networkx as nx
 
 from IPython.display import clear_output
 
@@ -25,7 +26,7 @@ class UI:
         self._adjacencyList: dict[any, list[any]] = adjacencyList
         self.digraph = self.createGraph(adjacencyList)
 
-    def display(self, graph):
+    def display(self, digraph):
         """
         Display the graph using a circular layout
 
@@ -118,3 +119,21 @@ class UI:
             return False, cycleEdges
         except:
             return True, []
+
+
+if __name__ == "__main__":
+    adjList = {'Smoking': ['Yellow_Fingers', 'Lung_cancer'],
+               'Yellow_Fingers': [],
+               'Anxiety': ['Smoking'],
+               'Peer_Pressure': ['Smoking'],
+               'Genetics': ['Attention_Disorder', 'Lung_cancer'],
+               'Attention_Disorder': ['Car_Accident'],
+               'Born_an_Even_Day': [],
+               'Car_Accident': ['Attention_Disorder'],
+               'Fatigue': ['Car_Accident', 'Coughing'],
+               'Allergy': ['Coughing'],
+               'Coughing': [],
+               'Lung_cancer': ['Fatigue', 'Coughing'],
+               }
+    ui = UI(adjList)
+    ui.convertToDag()

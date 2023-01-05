@@ -2,10 +2,10 @@ import copy
 import matplotlib.pyplot as plt
 
 
-class GUI:
+class UI:
     class Strings:
         """
-        Class for storing string constants used in the GUI class
+        Class for storing string constants used in the UI class
         """
         STRING_NOT_DAG_MESSAGE = "Cycle found, The following edges are causing a cycle"
         STRING_PROMPT = "Remove which edges? (write the node names with spaces seperating them, must be multiple of 2)"
@@ -14,7 +14,7 @@ class GUI:
 
     def __init__(self, adjacencyList: dict[any, list[any]]):
         """
-        Initialize the GUI class with an adjacency list and create a directed graph from it
+        Initialize the UI class with an adjacency list and create a directed graph from it
         
         Parameters:
         -----------
@@ -46,17 +46,17 @@ class GUI:
         while not isDag:
             # display the graph and print cycle-causing edges
             self.display(self.digraph)
-            print(GUI.Strings.STRING_NOT_DAG_MESSAGE)
+            print(UI.Strings.STRING_NOT_DAG_MESSAGE)
             print(arrangementList)
 
             # prompting the user for the edge to remove
-            inputs = input(GUI.Strings.STRING_PROMPT +
-                           GUI.Strings.STRING_PROMPT_EXAMPLE).split()
+            inputs = input(UI.Strings.STRING_PROMPT +
+                           UI.Strings.STRING_PROMPT_EXAMPLE).split()
 
             while len(inputs) % 2 != 0:
-                print(GUI.String.STRING_PROMPT_NOT_PERMITTED)
-                inputs = input(GUI.Strings.STRING_PROMPT +
-                               GUI.Strings.STRING_PROMPT_EXAMPLE).split()
+                print(UI.String.STRING_PROMPT_NOT_PERMITTED)
+                inputs = input(UI.Strings.STRING_PROMPT +
+                               UI.Strings.STRING_PROMPT_EXAMPLE).split()
 
             # remove chosen edges
             for i in range(0, len(inputs)-1, 2):

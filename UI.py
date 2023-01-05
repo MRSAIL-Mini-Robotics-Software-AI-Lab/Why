@@ -9,7 +9,7 @@ class UI:
         """
         STRING_NOT_DAG_MESSAGE = "Cycle found, The following edges are causing a cycle"
         STRING_PROMPT = "Remove which edges? (write the node names with spaces seperating them, must be multiple of 2)"
-        STRING_PROMPT_EXAMPLE = "\n\ti.e. a b c d will remove the edges ab and cd"
+        STRING_PROMPT_EXAMPLE = "\n\ti.e. a b c d will remove the edges ab and cd\t"
         STRING_PROMPT_NOT_PERMITTED = "Not permitted input, try again"
 
     def __init__(self, adjacencyList: dict[any, list[any]]):

@@ -1,5 +1,5 @@
 # pylint: disable=missing-module-docstring
-from .CausalDiscoveryPC import (
+from .CausalDiscovery import (
     CausalDiscoveryPC,
     IndependenceTest,
     PearsonsCorrelation,

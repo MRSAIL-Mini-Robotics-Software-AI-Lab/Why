@@ -2,3 +2,4 @@
 from .Estimator import Estimator
 from .COMEstimator import COMEstimator
 from .GCOMEstimator import GCOMEstimator
+from .TARNet import TARNet

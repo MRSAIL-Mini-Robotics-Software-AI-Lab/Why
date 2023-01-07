@@ -1,10 +1,12 @@
-# pylint: disable=missing-module-docstring
+# pylint: disable=missing-module-docstring, no-name-in-module
 from .CausalDiscovery import (
     CausalDiscoveryPC,
     IndependenceTest,
     PearsonsCorrelation,
     PartialCorrelation,
     ChiSquared,
+    GNNOrientation,
+    CGNNOrientation,
 )
 from .BackdoorAdjustment import BackdoorAdjustment
 from .Bounds import Bounds, BoundsEstimator

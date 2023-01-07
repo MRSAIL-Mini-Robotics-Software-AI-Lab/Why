@@ -6,14 +6,17 @@ from itertools import combinations
 import pandas as pd
 import networkx as nx
 
-from .IndependenceTests import test_conditional_independence_pearsons
+from .IndependenceTests import IndependenceTest
+
 
 class CausalDiscoveryPC:
-    '''
+    """
     PC algorithm for causal discovery given a dataset
-    '''
-    def __init__(self, data_frame: pd.DataFrame):
+    """
+
+    def __init__(self, data_frame: pd.DataFrame, indep_test: IndependenceTest):
         self.data_frame = data_frame
+        self.indep_test = indep_test
 
         # Adjacency list
         self.adj = []
@@ -31,24 +34,25 @@ class CausalDiscoveryPC:
                 self.name_to_id[feature] = self.features_count
                 self.features_count += 1
 
-
     def __test_conditional_independence_pearsons_ids(self, x, y, z):
         conditional_combination_strings = []
         for var_id in z:
             conditional_combination_strings.append(self.all_variables[var_id])
-        return test_conditional_independence_pearsons(self.data_frame,
-                                                      self.all_variables[x],
-                                                      self.all_variables[y],
-                                                      conditional_combination_strings)
+        return self.indep_test.test_conditional_independence(
+            self.data_frame,
+            self.all_variables[x],
+            self.all_variables[y],
+            conditional_combination_strings,
+        )
 
     def __generate_skeleton(self):
         self.adj = []
 
         # Create a complete graph
-        for i in range(0,self.features_count):
+        for i in range(0, self.features_count):
             self.adj.append(set(range(0, self.features_count)))
             self.adj[i].discard(i)
-            #print(self.adj[i])
+            # print(self.adj[i])
 
         all_variables_ids = list(range(0, self.features_count))
 
@@ -73,7 +77,6 @@ class CausalDiscoveryPC:
                 conditioning_variables.remove(var1)
                 conditioning_variables.remove(var2)
 
-
                 if length > len(conditioning_variables):
                     continue
 
@@ -87,13 +90,13 @@ class CausalDiscoveryPC:
                 for conditional_combination in conditional_combinations:
                     conditional_combination = list(conditional_combination)
 
-                    if self.__test_conditional_independence_pearsons_ids(var1,
-                                                                         var2,
-                                                                         conditional_combination):
-                        #print(f'{var1} and {var2} are dependent | {conditional_combination}')
+                    if self.__test_conditional_independence_pearsons_ids(
+                        var1, var2, conditional_combination
+                    ):
+                        # print(f'{var1} and {var2} are dependent | {conditional_combination}')
                         pass
                     else:
-                        #print(f'{var1} and {var2} are independent | {conditional_combination}')
+                        # print(f'{var1} and {var2} are independent | {conditional_combination}')
                         is_dependent = False
                         break
 
@@ -101,7 +104,6 @@ class CausalDiscoveryPC:
                 if not is_dependent:
                     self.adj[var1].discard(var2)
                     self.adj[var2].discard(var1)
-
 
     def __get_all_triple_paths(self):
         triples = []
@@ -113,18 +115,18 @@ class CausalDiscoveryPC:
                         triples.append((i, j, k))
         return triples
 
-
     def __get_immoralities(self) -> list:
         triples = self.__get_all_triple_paths()
 
         immoralities = []
 
         for triple in triples:
-            if self.__test_conditional_independence_pearsons_ids(triple[0], triple[2], [triple[1]]):
+            if self.__test_conditional_independence_pearsons_ids(
+                triple[0], triple[2], [triple[1]]
+            ):
                 immoralities.append(triple)
 
         return immoralities
-
 
     def __perform_orientation_on_immoralities(self) -> set:
         immoralities = self.__get_immoralities()
@@ -143,15 +145,17 @@ class CausalDiscoveryPC:
                 self.adj[edge[1]].discard(edge[0])
         return conflicts
 
-    def __perform_orientation_on_colliders(self, conflicts:set) -> set:
+    def __perform_orientation_on_colliders(self, conflicts: set) -> set:
         triples = self.__get_all_triple_paths()
 
         new_directed_edges = set()
 
         for triple in triples:
-            if triple[0] not in self.adj[triple[1]] and \
-                triple[1] in self.adj[triple[2]] and \
-                triple[2] in self.adj[triple[1]] :
+            if (
+                triple[0] not in self.adj[triple[1]]
+                and triple[1] in self.adj[triple[2]]
+                and triple[2] in self.adj[triple[1]]
+            ):
 
                 new_directed_edges.add((triple[1], triple[2]))
 
@@ -163,14 +167,14 @@ class CausalDiscoveryPC:
         return conflicts
 
     def get_adjacency_list(self) -> dict:
-        '''
+        """
         Obtain the adjacency list of the graph
 
         Returns
         -------
         adjacency_list : dict
             A dictionary of the adjacency list of the graph
-        '''
+        """
         self.__generate_skeleton()
 
         conflicts = self.__perform_orientation_on_immoralities()
@@ -191,8 +195,8 @@ class CausalDiscoveryPC:
 
         return adjacency_list
 
-    def get_networkx_graph(self, draw:bool=False) -> nx.DiGraph:
-        '''
+    def get_networkx_graph(self, draw: bool = False) -> nx.DiGraph:
+        """
         Get the networkx graph (nx.DiGraph) of the graph
 
         Parameters
@@ -204,8 +208,10 @@ class CausalDiscoveryPC:
         -------
         nx.DiGraph
             The networkx graph of the graph
-        '''
-        graph = nx.from_dict_of_lists(self.get_adjacency_list(), create_using=nx.DiGraph())
+        """
+        graph = nx.from_dict_of_lists(
+            self.get_adjacency_list(), create_using=nx.DiGraph()
+        )
         if draw:
             nx.draw_circular(graph, with_labels=True)
         return graph

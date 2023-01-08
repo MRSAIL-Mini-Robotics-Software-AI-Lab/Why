@@ -9,3 +9,4 @@ from .IndependenceTests import (
 from .UIOrientEdges import UIOrientEdges
 from .GNN import GNNOrientation
 from .CGNN import CGNNOrientation
+from .NonGaussianOrientation import NonGaussianOrientation

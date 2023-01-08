@@ -227,5 +227,6 @@ class GNNOrientation:
                     elif val < 0:
                         graph.remove_edge(edge[0], edge[1])
                     edges = list(graph.edges())
+                    break
 
         return graph

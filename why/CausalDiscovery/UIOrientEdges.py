@@ -1,6 +1,7 @@
 """
 Class for orienting edges in a graph manually by the user
 """
+from typing import Dict, List, Any
 import copy
 import matplotlib.pyplot as plt
 import networkx as nx
@@ -33,7 +34,7 @@ class UIOrientEdges:
             Graph to orient
         """
         self.digraph = copy.deepcopy(graph)
-        self._adjacency_list: dict[any, list[any]] = nx.to_dict_of_lists(graph)
+        self._adjacency_list: Dict[Any, List[Any]] = nx.to_dict_of_lists(graph)
 
     def display(self, digraph):
         """
@@ -88,7 +89,7 @@ class UIOrientEdges:
         self.display(self.digraph)
         return self.digraph
 
-    def create_graph(self, adjacency_list: dict[any, list[any]]) -> nx.DiGraph:
+    def create_graph(self, adjacency_list: Dict[Any, List[Any]]) -> nx.DiGraph:
         """
         Create a directed graph from the adjacency list
 
@@ -102,7 +103,7 @@ class UIOrientEdges:
         """
         return nx.from_dict_of_lists(adjacency_list, create_using=nx.DiGraph())
 
-    def set_adjacency_list(self, adjacency_list: dict[any, list[any]]) -> None:
+    def set_adjacency_list(self, adjacency_list: Dict[Any, List[Any]]) -> None:
         """
         Set the adjacency list for the instance
 
@@ -112,7 +113,7 @@ class UIOrientEdges:
         """
         self._adjacency_list = adjacency_list
 
-    def _is_dag(self, digraph: nx.DiGraph) -> list[bool, list[any]]:
+    def _is_dag(self, digraph: nx.DiGraph) -> List[Any]:
         """
         Check if the given graph is a Directed Acyclic Graph (DAG) by
         using topological sort to check for cycles

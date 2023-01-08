@@ -1,4 +1,4 @@
-# pylint: disable=missing-module-docstring, no-name-in-module
+# pylint: disable=missing-module-docstring, no-name-in-module, import-error
 from .CausalDiscovery import (
     CausalDiscoveryPC,
     IndependenceTest,
@@ -7,6 +7,7 @@ from .CausalDiscovery import (
     ChiSquared,
     GNNOrientation,
     CGNNOrientation,
+    UIOrientEdges,
 )
 from .BackdoorAdjustment import BackdoorAdjustment
 from .Bounds import Bounds, BoundsEstimator

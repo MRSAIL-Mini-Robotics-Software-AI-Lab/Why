@@ -84,6 +84,8 @@ class CGNNOrientation:
         Number of evaluation runs for the model
     n_orientation_runs: int
         Number of orientation runs for the model
+    batch_size: int
+        Batch size for training the model
     """
 
     def __init__(
@@ -93,12 +95,14 @@ class CGNNOrientation:
         n_train_runs: int = 300,
         n_eval_runs: int = 100,
         n_orientation_runs: int = 6,
+        batch_size: int = -1,
     ):
         self.hidden_size = hidden_size
         self.learning_rate = learning_rate
         self.n_train_runs = n_train_runs
         self.n_eval_runs = n_eval_runs
         self.n_orientation_runs = n_orientation_runs
+        self.batch_size = batch_size
 
     def eval_graph_once(
         self,
@@ -124,13 +128,17 @@ class CGNNOrientation:
         float
             The MMD loss of the trained CGNN
         """
+        batch_size = self.batch_size
+        if self.batch_size == -1:
+            batch_size = data.shape[0]
         model = CGNN(graph, self.hidden_size)
         model.to(device)
         optimizer = torch.optim.Adam(model.parameters(), lr=self.learning_rate)
 
         for _ in range(self.n_orientation_runs):
-            pred = model.forward(data.shape[0])
-            loss = MMDLoss(data, pred)
+            indices = torch.randint(0, data.shape[0], (batch_size,))
+            pred = model.forward(batch_size)
+            loss = MMDLoss(data[indices], pred)
 
             optimizer.zero_grad()
             loss.backward()
@@ -139,8 +147,8 @@ class CGNNOrientation:
         losses = []
         with torch.no_grad():
             for _ in range(self.n_eval_runs):
-                pred = model.forward(data.shape[0])
-                loss = MMDLoss(data, pred)
+                pred = model.forward(batch_size)
+                loss = MMDLoss(data[indices], pred)
                 losses.append(loss.item())
         return np.mean(losses)
 

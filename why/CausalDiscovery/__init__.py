@@ -6,5 +6,6 @@ from .IndependenceTests import (
     PartialCorrelation,
     ChiSquared,
 )
+from .UIOrientEdges import UIOrientEdges
 from .GNN import GNNOrientation
 from .CGNN import CGNNOrientation

@@ -2,9 +2,13 @@
 Generative Neural Network for estimating the direction of an edge in a structural causal model
 Based on the CGNNs paper, https://arxiv.org/abs/1711.08936
 """
+import copy
 from tqdm import tqdm
 
 import numpy as np
+import pandas as pd
+import networkx as nx
+
 import torch
 import torch.nn as nn
 
@@ -65,12 +69,14 @@ class GNNOrientation:
         n_train_runs: int = 300,
         n_eval_runs: int = 100,
         learning_rate: float = 1e-2,
+        batch_size: int = -1,
     ):
         self.hidden_size = hidden_size
         self.n_orientation_runs = n_orientation_runs
         self.n_train_runs = n_train_runs
         self.n_eval_runs = n_eval_runs
         self.learning_rate = learning_rate
+        self.batch_size = batch_size
 
     def eval_gnn(
         self,
@@ -97,6 +103,9 @@ class GNNOrientation:
         float
             Mean MMD loss over all evaluations
         """
+        batch_size = self.batch_size
+        if self.batch_size == -1:
+            batch_size = cause.shape[0]
         model = GNN(1, self.hidden_size)
         model.to(device)
         optimizer = torch.optim.Adam(model.parameters(), lr=self.learning_rate)
@@ -104,10 +113,11 @@ class GNNOrientation:
 
         # Train the model
         for _ in range(self.n_train_runs):
-            pred = model.forward(cause)
-            pred = torch.cat([cause, pred], dim=1)
+            indices = torch.randint(0, cause.shape[0], (batch_size,))
+            pred = model.forward(cause[indices])
+            pred = torch.cat([cause[indices], pred], dim=1)
 
-            loss = MMDLoss(target, pred)
+            loss = MMDLoss(target[indices], pred)
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
@@ -116,10 +126,11 @@ class GNNOrientation:
         losses = []
         with torch.no_grad():
             for _ in range(self.n_eval_runs):
-                pred = model.forward(cause)
-                pred = torch.cat([cause, pred], dim=1)
+                indices = torch.randint(0, cause.shape[0], (batch_size,))
+                pred = model.forward(cause[indices])
+                pred = torch.cat([cause[indices], pred], dim=1)
 
-                loss = MMDLoss(target, pred)
+                loss = MMDLoss(target[indices], pred)
                 losses.append(loss.item())
 
         return np.mean(losses)
@@ -149,7 +160,7 @@ class GNNOrientation:
         -------
         float
             If > 0, then `var_x` is the cause of `var_y`
-            If < 0, then `var_y` is the cause of `var_x`
+                If < 0, then `var_y` is the cause of `var_x`
             If == 0, then the causal direction cannot be determined (no causal relationship)
         """
         losses_xy = []
@@ -161,3 +172,60 @@ class GNNOrientation:
         mean_yx = np.mean(losses_yx)
         causal_dir_score = (mean_yx - mean_xy) / (mean_yx + mean_xy)
         return causal_dir_score
+
+    def orient_edges(
+        self,
+        graph: nx.DiGraph,
+        data_frame: pd.DataFrame,
+        device: torch.device = torch.device("cpu"),
+        verbose: bool = False,
+    ):
+        """
+        Estimates the causal direction of all edges in a graph
+
+        Parameters
+        ----------
+        graph : nx.DiGraph
+            Graph to orient
+        data_frame : pd.DataFrame
+            Data frame containing the data to use for orientation
+        device: torch.device, by default cpu
+            Device to run the model on
+        verbose : bool, by default False
+            If True, prints a progress bar
+
+        Returns
+        -------
+        nx.DiGraph
+            Oriented graph
+        """
+        graph = copy.deepcopy(graph)
+        edges = list(graph.edges)
+        done = False
+        while not done:
+            done = True
+            for edge in edges:
+                new_edge = edge[1], edge[0]
+                if new_edge in edges:
+                    done = False
+                    x = (
+                        torch.from_numpy(data_frame[edge[0]].values)
+                        .float()
+                        .to(device)
+                        .reshape(-1, 1)
+                    )
+                    y = (
+                        torch.from_numpy(data_frame[edge[1]].values)
+                        .float()
+                        .to(device)
+                        .reshape(-1, 1)
+                    )
+                    val = self.orient_edge(x, y, device, verbose)
+                    assert val != 0, "Shouldn't be 0"
+                    if val > 0:
+                        graph.remove_edge(edge[1], edge[0])
+                    elif val < 0:
+                        graph.remove_edge(edge[0], edge[1])
+                    edges = list(graph.edges())
+
+        return graph

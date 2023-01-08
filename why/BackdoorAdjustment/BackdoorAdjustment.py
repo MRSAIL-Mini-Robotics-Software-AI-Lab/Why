@@ -1,6 +1,6 @@
-'''
+"""
 Backdoor Adjustment Module to obtain the adjustment set to estimate the ATE between two variables
-'''
+"""
 
 import networkx as nx
 from itertools import chain, combinations
@@ -19,7 +19,9 @@ class BackdoorAdjustment:
         graph (networkx.classes.digraph.DiGraph): The causal graph we want to adjust to it.
 
         """
-        assert nx.is_directed_acyclic_graph(graph), "Passed graph must be a directed acyclic graph"
+        assert nx.is_directed_acyclic_graph(
+            graph
+        ), "Passed graph must be a directed acyclic graph"
         self.dag = graph
         self.all_variables = [v for v in graph.nodes]
 
@@ -174,7 +176,7 @@ class BackdoorAdjustment:
         # All backdoor paths are blocked by conditioning on z_set
         return True
 
-    def get_all_backdoor_adjustment_set(self, T, Y):
+    def get_all_backdoor_adjustment_set(self, T, Y, max_size: int = None):
         """
         Finds all valid adjustment sets that blocks all backdoor paths
         between treatment and outcome
@@ -188,11 +190,16 @@ class BackdoorAdjustment:
         to get the minimum adjustment set index the first tuple in the output.
 
         """
-        possible_variables_for_adjustment = self._to_set(self.all_variables) - self._to_set(T) - self._to_set(Y) - set(
-            nx.descendants(self.dag, T))
+        possible_variables_for_adjustment = (
+            self._to_set(self.all_variables)
+            - self._to_set(T)
+            - self._to_set(Y)
+            - set(nx.descendants(self.dag, T))
+        )
         valid_adjustment_sets = []
         for adj_set in self._get_powerset(possible_variables_for_adjustment):
             if self.is_valid_backdoor_adjustment(T, Y, adj_set):
                 valid_adjustment_sets.append(adj_set)
+            if max_size is not None and len(valid_adjustment_sets) > max_size:
+                break
         return valid_adjustment_sets
-

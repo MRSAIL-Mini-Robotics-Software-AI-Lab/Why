@@ -7,4 +7,4 @@ we present ”Why”, a causal inference library for structural causal modeling 
 An example on how to use this library can be found in the following notebooks:
 * lucas.ipynb
 * ihdp.ipynb
-* pubg.ipyng
+* pubg.ipynb

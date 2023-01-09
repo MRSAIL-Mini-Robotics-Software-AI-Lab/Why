@@ -46,6 +46,9 @@ class CausalDiscoveryPC:
         )
 
     def __generate_skeleton(self):
+        """
+        Generates the main structure of the graph with undirected edges
+        """
         self.adj = []
 
         # Create a complete graph
@@ -106,6 +109,11 @@ class CausalDiscoveryPC:
                     self.adj[var2].discard(var1)
 
     def __get_all_triple_paths(self):
+        """
+        Returns:
+        list
+            All pathes of the form x - y - z where x , z are not connected
+        """
         triples = []
 
         for i in range(0, self.features_count):

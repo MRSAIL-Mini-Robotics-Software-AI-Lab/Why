@@ -132,6 +132,8 @@ class BoundsEstimator:
     def monotone_treatment_selection(self, treatment:str, outcome:str) -> Tuple[float, float]:
         '''
         Compute the ate bounds using the monotone treatment selection assumption
+        The assumption is that treatment group potential outcome is more than control
+        group potential outcome E[Y (1)|T =1] >= E[Y (1)|T = 0] and E[Y (0)|T = 1] >= E[Y (0)|T =0]
 
         Parameters
         ----------
@@ -159,6 +161,8 @@ class BoundsEstimator:
     def optimal_treatment_selection(self, treatment:str, outcome:str) -> Tuple[float, float]:
         '''
         Compute the ate bounds using the optimal treatment selection assumption
+        Assumption is that individials always recieve the treatment which is best for them
+        if Ti = 1, then Yi(1) >= Yi(0) and if Ti = 0 then Yi(0) > Yi(1).
 
         Parameters
         ----------
